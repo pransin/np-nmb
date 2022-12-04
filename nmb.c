@@ -3,13 +3,16 @@
 #include <sys/un.h>
 #include <sys/socket.h>
 #include <stdlib.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #define SERVER_SOCK_PATH "/usr/tmp/1111"
+#define MAX_BUFFER_LENGTH 1024
 
 struct messagetype
 {
     long mtype;
-    char message[1024];
+    char message[MAX_BUFFER_LENGTH];
 };
 
 int msgget_nmb()
@@ -49,8 +52,10 @@ int msgget_nmb()
 //     remove(client_address.sun_path);
 // }
 
-void msgsnd_nmb(struct messagetype *msg, int clientsockfd)
+void msgsnd_nmb(struct messagetype *msg, int clientsockfd, char *ip, int port)
 {
+    int ipaddress = inet_pton(AF_INET, ip, NULL);
+    msg->mtype = (ipaddress << 16) | port;
     struct sockaddr_un server_address;
     memset(&server_address, 0, sizeof(struct sockaddr_un));
     server_address.sun_family = AF_UNIX;
