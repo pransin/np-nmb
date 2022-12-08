@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include "errno.h"
 
 #define SERVER_SOCK_PATH "/usr/tmp/1111"
 #define MAX_BUFFER_LENGTH 1024
@@ -71,8 +72,8 @@ struct messagetype msgrcv_nmb(int clientsockfd, int msqid, int port_no)
 {
     struct messagetype buf;
     long msgtype = port_no;
-    int n = msgrcv(msqid, &buf, sizeof(buf), msgtype, 0);
-    if (n)
+    int n = msgrcv(msqid, &buf, sizeof(buf), msgtype, IPC_NOWAIT);
+    if (errno != EAGAIN)
     {
         return buf;
     }
