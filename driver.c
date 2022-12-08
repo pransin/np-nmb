@@ -25,7 +25,8 @@ int main(int argc, char *argv[])
     struct msg msg;
     int fd = msgget_nmb();
     pid_t child = fork();
-    if(child == 0){
+    if (child == 0)
+    {
         for (;;)
         {
             printf("Enter destination IP:\n");
@@ -34,11 +35,12 @@ int main(int argc, char *argv[])
             scanf("%d", &port);
             printf("Enter message:\n");
             scanf("%s", msg.mtext);
-            msgsnd_nmb((struct messagetype*)&msg, fd, ip, port);
+            msgsnd_nmb((struct messagetype *)&msg, fd, ip, port);
         }
     }
-    else{
+    else
+    {
 
-        msgrcv_nmb(fd, port);
+        // msgrcv_nmb(fd, port);
     }
 }

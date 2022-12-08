@@ -10,5 +10,5 @@ struct messagetype
 };
 
 int msgget_nmb();
-void msgsnd_nmb(struct messagetype *msg, int clientsockfd, char *ip, int port);
-struct messagetype msgrcv_nmb(int clientsockfd, int port_no);
+void msgsnd_nmb(void *msg, int clientsockfd, char *ip, int port);
+void *msgrcv_nmb(int clientsockfd, void *msg, int port_no);

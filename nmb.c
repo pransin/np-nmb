@@ -42,11 +42,10 @@ int msgget_nmb()
     return sockfd;
 }
 
-
-void msgsnd_nmb(struct messagetype *msg, int clientsockfd, char *ip, int port)
+void msgsnd_nmb(void *msg, int clientsockfd, char *ip, int port)
 {
-    int ipaddress = inet_pton(AF_INET, ip, NULL);
-    msg->mtype = (ipaddress << 16) | port;
+    // int ipaddress = inet_pton(AF_INET, ip, NULL);
+    // msg->mtype = (ipaddress << 16) | port;
     struct sockaddr_un server_address;
     memset(&server_address, 0, sizeof(struct sockaddr_un));
     server_address.sun_family = AF_UNIX;
@@ -58,19 +57,18 @@ void msgsnd_nmb(struct messagetype *msg, int clientsockfd, char *ip, int port)
     }
 }
 
-struct messagetype msgrcv_nmb(int clientsockfd, int port_no)
+void *msgrcv_nmb(int clientsockfd, void *msg, int port_no)
 {
-    struct messagetype buf;
     long msgtype = port_no;
-    int n = msgrcv(__msqid, &buf, sizeof(buf), msgtype, IPC_NOWAIT);
+    int n = msgrcv(__msqid, msg, sizeof(*msg), msgtype, IPC_NOWAIT);
     if (errno != EAGAIN)
     {
-        return buf;
+        return msg;
     }
-    n = recvfrom(clientsockfd, &buf, sizeof(buf), 0, NULL, NULL);
+    n = recvfrom(clientsockfd, msg, sizeof(*msg), 0, NULL, NULL);
     if (n == -1)
     {
         perror("recvfrom");
     }
-    return buf;
+    return msg;
 }
