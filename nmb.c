@@ -5,16 +5,39 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include "errno.h"
 
 #define SERVER_SOCK_PATH "/usr/tmp/1111"
 #define MAX_BUFFER_LENGTH 1024
+#define MSG_QUEUE_PATH "."
 
+int __msqid;
 struct messagetype
 {
     long mtype;
     char message[MAX_BUFFER_LENGTH];
 };
+
+void error_exit(char *msg)
+{
+    perror(msg);
+    exit(EXIT_FAILURE);
+}
+
+int create_mq()
+{
+    key_t key = ftok(MSG_QUEUE_PATH, 'n');
+    if (key == -1)
+        error_exit("ftok");
+
+    int msqid;
+    if ((msqid = msgget(key, IPC_CREAT | 0644)) == -1)
+        error_exit("msgget");
+
+    return msqid;
+}
 
 int msgget_nmb()
 {
@@ -23,35 +46,12 @@ int msgget_nmb()
     client_address.sun_family = AF_UNIX;
     snprintf(client_address.sun_path, sizeof(client_address.sun_path), "/tmp/ud_ucase_cl.%ld", (long)getpid());
     if (bind(sockfd, (struct sockaddr *)&client_address, sizeof(struct sockaddr_un)) == -1)
-    {
-        perror("bind");
-        exit(EXIT_FAILURE);
-    }
+        error_exit("bind");
+
+    __msqid = create_mq();
     return sockfd;
 }
 
-// void msgsnd_nmb(struct messagetype *msg)
-// {
-//     struct sockaddr_un server_address, client_address;
-//     int sockfd = socket(AF_UNIX, SOCK_DGRAM, 0);
-//     memset(&client_address, 0, sizeof(struct sockaddr_un));
-//     client_address.sun_family = AF_UNIX;
-//     snprintf(client_address.sun_path, sizeof(client_address.sun_path), "/tmp/ud_ucase_cl.%ld", (long)getpid());
-//     if (bind(sockfd, (struct sockaddr *)&client_address, sizeof(struct sockaddr_un)) == -1)
-//     {
-//         perror("bind");
-//         exit(EXIT_FAILURE);
-//     }
-//     memset(&server_address, 0, sizeof(struct sockaddr_un));
-//     server_address.sun_family = AF_UNIX;
-//     strncpy(server_address.sun_path, SERVER_SOCK_PATH, sizeof(server_address.sun_family) - 1);
-//     int n = sendto(sockfd, msg, sizeof(*msg), 0, (struct sockaddr *)&server_address, sizeof(struct sockaddr_un));
-//     if (n == -1)
-//     {
-//         perror("sendto");
-//     }
-//     remove(client_address.sun_path);
-// }
 
 void msgsnd_nmb(struct messagetype *msg, int clientsockfd, char *ip, int port)
 {
@@ -68,11 +68,11 @@ void msgsnd_nmb(struct messagetype *msg, int clientsockfd, char *ip, int port)
     }
 }
 
-struct messagetype msgrcv_nmb(int clientsockfd, int msqid, int port_no)
+struct messagetype msgrcv_nmb(int clientsockfd, int port_no)
 {
     struct messagetype buf;
     long msgtype = port_no;
-    int n = msgrcv(msqid, &buf, sizeof(buf), msgtype, IPC_NOWAIT);
+    int n = msgrcv(__msqid, &buf, sizeof(buf), msgtype, IPC_NOWAIT);
     if (errno != EAGAIN)
     {
         return buf;

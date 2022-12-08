@@ -21,13 +21,21 @@ int main(int argc, char *argv[])
     int port;
     struct msg msg;
     int fd = msgget_nmb();
-    for (;;)
-    {
-        printf("Enter destination IP:\n");
-        scanf("%s", &ip);
-        printf("Enter destination port:\n");
-        scanf("%d", port);
-        printf("Enter message:\n");
-        scanf("%s", &msg.mtext);
+    pid_t child = fork();
+    if(child == 0){
+        for (;;)
+        {
+            printf("Enter destination IP:\n");
+            scanf("%s", ip);
+            printf("Enter destination port:\n");
+            scanf("%d", &port);
+            printf("Enter message:\n");
+            scanf("%s", msg.mtext);
+            msgsnd_nmb(&msg, fd, ip, port);
+        }
+    }
+    else{
+
+        msgrcv_nmb(fd, port);
     }
 }
