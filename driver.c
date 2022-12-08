@@ -1,6 +1,9 @@
 #define MAX_BUFFER_LENGTH 1024
-#include "nmb.c"
+#include "nmb.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 struct msg
 {
@@ -31,7 +34,7 @@ int main(int argc, char *argv[])
             scanf("%d", &port);
             printf("Enter message:\n");
             scanf("%s", msg.mtext);
-            msgsnd_nmb(&msg, fd, ip, port);
+            msgsnd_nmb((struct messagetype*)&msg, fd, ip, port);
         }
     }
     else{

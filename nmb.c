@@ -8,17 +8,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "errno.h"
-
-#define SERVER_SOCK_PATH "/usr/tmp/1111"
-#define MAX_BUFFER_LENGTH 1024
-#define MSG_QUEUE_PATH "."
-
-int __msqid;
-struct messagetype
-{
-    long mtype;
-    char message[MAX_BUFFER_LENGTH];
-};
+#include "nmb.h"
 
 void error_exit(char *msg)
 {
@@ -26,7 +16,7 @@ void error_exit(char *msg)
     exit(EXIT_FAILURE);
 }
 
-int create_mq()
+int get_mq()
 {
     key_t key = ftok(MSG_QUEUE_PATH, 'n');
     if (key == -1)
@@ -48,7 +38,7 @@ int msgget_nmb()
     if (bind(sockfd, (struct sockaddr *)&client_address, sizeof(struct sockaddr_un)) == -1)
         error_exit("bind");
 
-    __msqid = create_mq();
+    __msqid = get_mq();
     return sockfd;
 }
 
