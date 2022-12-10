@@ -48,8 +48,8 @@ int msgsnd_nmb(int clientsockfd, char *ip, int port, void *msg, size_t msgsz)
     if (inet_pton(AF_INET, ip, &ipaddress) != 1)
         return -1;
 
-    printf("%d\n", ipaddress);
-    printf("msg size = %d\n", sizeof(*msg));
+    // printf("%d\n", ipaddress);
+    // printf("msg size = %d\n", sizeof(*msg));
     long mtype = (ipaddress << 16) | port;
     *(long *)msg = mtype;
     struct sockaddr_un server_address;
@@ -61,6 +61,7 @@ int msgsnd_nmb(int clientsockfd, char *ip, int port, void *msg, size_t msgsz)
     {
         perror("sendto");
     }
+    return n;
 }
 
 int msgrcv_nmb(int clientsockfd, void *msg, int port_no)
