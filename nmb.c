@@ -42,10 +42,16 @@ int msgget_nmb()
     return sockfd;
 }
 
-void msgsnd_nmb(void *msg, int clientsockfd, char *ip, int port)
+int msgsnd_nmb(int clientsockfd, char *ip, int port, void *msg, size_t msgsz)
 {
-    // int ipaddress = inet_pton(AF_INET, ip, NULL);
-    // msg->mtype = (ipaddress << 16) | port;
+    in_addr_t ipaddress;
+    if (inet_pton(AF_INET, ip, &ipaddress) != 1)
+        return -1;
+
+    printf("%d\n", ipaddress);
+    printf("msg size = %d\n", sizeof(*msg));
+    long mtype = (ipaddress << 16) | port;
+    *(long *)msg = mtype;
     struct sockaddr_un server_address;
     memset(&server_address, 0, sizeof(struct sockaddr_un));
     server_address.sun_family = AF_UNIX;
@@ -57,18 +63,16 @@ void msgsnd_nmb(void *msg, int clientsockfd, char *ip, int port)
     }
 }
 
-void *msgrcv_nmb(int clientsockfd, void *msg, int port_no)
+int msgrcv_nmb(int clientsockfd, void *msg, int port_no)
 {
     long msgtype = port_no;
+    // Try reading from message queue
     int n = msgrcv(__msqid, msg, sizeof(*msg), msgtype, IPC_NOWAIT);
-    if (errno != EAGAIN)
-    {
-        return msg;
-    }
+    if (n != -1)
+        return n;
+
+    // Read from socket if msg queue is empty
     n = recvfrom(clientsockfd, msg, sizeof(*msg), 0, NULL, NULL);
-    if (n == -1)
-    {
-        perror("recvfrom");
-    }
-    return msg;
+    printf("Read %d bytes\n", n);
+    return n;
 }

@@ -24,11 +24,12 @@ int main(int argc, char *argv[])
     int port;
     struct msg msg;
     int fd = msgget_nmb();
-    pid_t child = fork();
-    if (child == 0)
+    char yesno;
+    for (;;)
     {
-        for (;;)
-        {
+        printf("Do you want to send?\n");
+        scanf("%c", &yesno);
+        if(yesno == 'y' || yesno == 'n'){
             printf("Enter destination IP:\n");
             scanf("%s", ip);
             printf("Enter destination port:\n");
@@ -37,10 +38,9 @@ int main(int argc, char *argv[])
             scanf("%s", msg.mtext);
             msgsnd_nmb((struct messagetype *)&msg, fd, ip, port);
         }
+        else{
+            struct msg message = msgrcv_nmb(fd, port);
+        }
     }
-    else
-    {
 
-        // msgrcv_nmb(fd, port);
-    }
 }
