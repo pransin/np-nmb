@@ -10,6 +10,13 @@
 #include "errno.h"
 #include "nmb.h"
 
+struct ip_msg
+{
+    long mtype;
+    char mtext[MAX_BUFFER_LENGTH];
+    int ip;
+};
+
 void error_exit(char *msg)
 {
     perror(msg);
@@ -55,7 +62,7 @@ int msgsnd_nmb(int clientsockfd, char *ip, short port, void *msg, size_t msgsz)
     memset(&server_address, 0, sizeof(struct sockaddr_un));
     server_address.sun_family = AF_UNIX;
     strncpy(server_address.sun_path, SERVER_SOCK_PATH, sizeof(server_address.sun_path) - 1);
-    int n = sendto(clientsockfd, msg, msgsz, 0, (struct sockaddr *)&server_address, sizeof(struct sockaddr_un));
+    int n = sendto(clientsockfd, msg, msgsz + sizeof(long), 0, (struct sockaddr *)&server_address, sizeof(struct sockaddr_un));
     if (n == -1)
     {
         perror("sendto");
@@ -66,9 +73,14 @@ int msgrcv_nmb(int clientsockfd, void *msg, size_t msgsz)
 {
     long msgtype = __port;
     // Try reading from message queue
-    int n = msgrcv(__msqid, msg, msgsz, msgtype, IPC_NOWAIT);
+    struct ip_msg ipmsg;
+    int n = msgrcv(__msqid, &ipmsg, sizeof(ipmsg), msgtype, IPC_NOWAIT);
     if (n != -1)
+    {
+        *(long *)msg = ((long)ipmsg.ip << 16) | ipmsg.mtype;
+        memcpy((char *)msg + sizeof(long), &ipmsg.mtext, msgsz);
         return n;
+    }
 
     // Read from socket if msg queue is empty
     n = recvfrom(clientsockfd, msg, msgsz, 0, NULL, NULL);

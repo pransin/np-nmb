@@ -22,6 +22,13 @@ struct msg
     char mtext[MAX_BUFFER_LENGTH];
 };
 
+struct ip_msg
+{
+    long mtype;
+    char mtext[MAX_BUFFER_LENGTH];
+    int ip;
+};
+
 void error_exit(char *msg)
 {
     perror(msg);
@@ -56,13 +63,11 @@ int create_multi_receiver()
         error_exit("bind error in UDP");
 
     mreq.imr_multiaddr.s_addr = inet_addr(MULTICAST_GROUP);
-    // mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+    mreq.imr_interface.s_addr = htonl(INADDR_ANY);
 
-    // if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0)
-    //     error_exit("setsockopt");
-    mreq.imr_interface.s_addr = htonl(INADDR_LOOPBACK);
     if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0)
         error_exit("setsockopt");
+
     int opt = 1;
     if (setsockopt(fd, IPPROTO_IP, IP_PKTINFO, &opt, sizeof(opt)) < 0)
         error_exit("setsockfd");
@@ -140,8 +145,14 @@ void process_message(struct msg *msg, int udsfd, int msqid)
     printf("Trying to send on unix socket\n");
     if (sendto(udsfd, msg, sizeof(*msg), 0, (struct sockaddr *)&cliaddr, sizeof(struct sockaddr_un)) == -1)
     {
+        // Separate IP from port so that it is easy for nmb process to retrieve message from msg queue.
+        // Option 2 was that nmb process IP address on its own and compute the mtype but that would not work in case of multihomed systems
+        struct ip_msg ipmsg;
+        ipmsg.mtype = (msg->mtype & 0xffff);
+        memcpy(&ipmsg.mtext, &msg->mtext, sizeof(*msg) - sizeof(long));
+        ipmsg.ip = (msg->mtype >> 16);
         printf("Sending on message queue\n");
-        msgsnd(msqid, msg, sizeof(*msg), 0);
+        msgsnd(msqid, &ipmsg, sizeof(ipmsg), 0);
     }
 }
 

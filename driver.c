@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
         else
         {
             printf("Waiting for message.....\n");
-            msgrcv_nmb(fd, &msg, sizeof(msg));
+            msgrcv_nmb(fd, &msg, sizeof(msg) - sizeof(msg.mtype));
             printf("%s\n", msg.mtext);
         }
     }
