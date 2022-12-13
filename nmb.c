@@ -67,6 +67,7 @@ int msgsnd_nmb(int clientsockfd, char *ip, short port, void *msg, size_t msgsz)
     {
         perror("sendto");
     }
+    return n;
 }
 
 int msgrcv_nmb(int clientsockfd, void *msg, size_t msgsz)
