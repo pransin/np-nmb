@@ -4,7 +4,7 @@
 #define MSG_QUEUE_PATH "."
 
 int __msqid;
-
-int msgget_nmb();
-int msgsnd_nmb(int clientsockfd, char *ip, int port, void *msg, size_t msgsz);
-int msgrcv_nmb(int clientsockfd, void *msg, int port_no);
+int __port;
+int msgget_nmb(short port);
+int msgsnd_nmb(int clientsockfd, char *ip, short port, void *msg, size_t msgsz);
+int msgrcv_nmb(int clientsockfd, void *msg, size_t msgsz);

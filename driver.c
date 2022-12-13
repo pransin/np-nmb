@@ -19,28 +19,30 @@ int main(int argc, char *argv[])
         printf("Usage: ./driver <your-port>\n");
         exit(EXIT_FAILURE);
     }
-
     char ip[16];
     int port;
     struct msg msg;
-    int fd = msgget_nmb();
+    int fd = msgget_nmb(atoi(argv[1]));
     char yesno;
     for (;;)
     {
         printf("Do you want to send?\n");
-        scanf("%c", &yesno);
-        if(yesno == 'y' || yesno == 'n'){
+        scanf(" %c", &yesno);
+        if (yesno == 'y' || yesno == 'Y')
+        {
             printf("Enter destination IP:\n");
-            scanf("%s", ip);
+            scanf(" %s", ip);
             printf("Enter destination port:\n");
             scanf("%d", &port);
             printf("Enter message:\n");
-            scanf("%s", msg.mtext);
-            msgsnd_nmb((struct messagetype *)&msg, fd, ip, port);
+            scanf(" %[^\n]s", msg.mtext);
+            msgsnd_nmb(fd, ip, port, &msg, sizeof(msg));
         }
-        else{
-            struct msg message = msgrcv_nmb(fd, port);
+        else
+        {
+            printf("Waiting for message.....\n");
+            msgrcv_nmb(fd, &msg, sizeof(msg));
+            printf("%s\n", msg.mtext);
         }
     }
-
 }
