@@ -120,12 +120,16 @@ int recv_multi_msg(int udpfd, struct msg *nmb_msg)
         memcpy(&pi, CMSG_DATA(cmsg), sizeof(pi));
         printf("Destination IP: %s\n", inet_ntoa(pi.ipi_spec_dst));
         in_addr_t ip = (nmb_msg->mtype) >> 16;
-        if ((pi.ipi_spec_dst.s_addr != ip) || nmb_msg->mtype == 0)
+        if ((pi.ipi_spec_dst.s_addr != ip) && (nmb_msg->mtype != 0))
             return -1;
         break;
     }
 
-    printf("Message Received: %s\n", nmb_msg->mtext);
+    if (nmb_msg->mtype != 0)
+        printf("Message Received: %s\n", nmb_msg->mtext);
+    else
+        printf("Error message received\n");
+
     return nb;
 }
 
