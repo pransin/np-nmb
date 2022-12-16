@@ -10,6 +10,10 @@ A network message bus implemented for the course IS F462 Network Programming at 
     gcc -o driver driver.c nmb.c
     
     ./driver <port number>
+    
+    gcc -o error error.c nmb.c
+    
+    ./error
 ```
 
 ## Design Features
@@ -17,8 +21,9 @@ A network message bus implemented for the course IS F462 Network Programming at 
 The Network Message Bus (NMB) has following characteristics
 
 - The message from process A on OS 1 to process B on OS 2 is routed as follows: Process A &rarr; Unix Domain Datagram Socket of OS 1 &rarr; UDP Socket of OS 1 &rarr; UDP Socket of OS 2 (via multicast) &rarr; Unix Domain Datagram Socket / Message queue of OS 2 &rarr; Process B
-- During multicast, if the destination IP Address provided is loop back address, then that message isn't multicasted.
-- When a process 
+- Each OS (local server) has a UDP socket (for receiving multicast messages), a Unix Domain Datagram Socket (for communication with its own processes), a message queue (which stores messages for processes which are down) and an error process
+- During multicast, if the destination IP Address provided is loop back address, then that message isn't multicasted
+- When a receiving process is down, the local server buffers its messages in message queue and the process later reads those messages from the queue itself. Otherwise the message is directly sent to the Unix Domain Datagram Socket of the process
 
 ### NMB API
 
@@ -28,8 +33,12 @@ The Network Message Bus (NMB) has following characteristics
 
 ### Local server
 
+- Each local server has a UDP socket and a Unix Domain Datagram Socket. UDP Socket is used for receiving multicasted messages and Unix Domain Datagram Socket is used for relaying messages to its processes
+
 ### Error Process
 
 - 
 
 ## Assumptions
+
+## Screenshots
