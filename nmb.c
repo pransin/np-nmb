@@ -10,11 +10,14 @@
 #include "errno.h"
 #include "nmb.h"
 
+int __msqid;
+int __port;
+
 struct ip_msg
 {
     long mtype;
-    char mtext[MAX_BUFFER_LENGTH];
     int ip;
+    char mtext[MAX_BUFFER_LENGTH];
 };
 
 void error_exit(char *msg)
@@ -42,7 +45,7 @@ int msgget_nmb(short port)
     struct sockaddr_un client_address;
     int sockfd = socket(AF_UNIX, SOCK_DGRAM, 0);
     client_address.sun_family = AF_UNIX;
-    snprintf(client_address.sun_path, sizeof(client_address.sun_path), "/tmp/ud_ucase_cl.%d", __port);
+    snprintf(client_address.sun_path, sizeof(client_address.sun_path), "/tmp/nmb.%d", __port);
     unlink(client_address.sun_path);
     if (bind(sockfd, (struct sockaddr *)&client_address, sizeof(struct sockaddr_un)) == -1)
         error_exit("bind");
@@ -51,13 +54,20 @@ int msgget_nmb(short port)
     return sockfd;
 }
 
+// Sends a multicast message via local server
 int msgsnd_nmb(int clientsockfd, char *ip, short port, void *msg, size_t msgsz)
 {
-    in_addr_t ipaddress;
-    if (inet_pton(AF_INET, ip, &ipaddress) != 1)
-        return -1;
-    long mtype = ((long)ipaddress << 16) | port;
-    *(long *)msg = mtype;
+    // Message size should be less than MAX_BUFFER_LENGTH
+    long mtype;
+    // __port == 0 for an error message
+    if (__port != 0)
+    {
+        in_addr_t ipaddress;
+        if (inet_pton(AF_INET, ip, &ipaddress) != 1)
+            return -1;
+        mtype = ((long)ipaddress << 16) | port;
+        *(long *)msg = mtype;
+    }
     struct sockaddr_un server_address;
     memset(&server_address, 0, sizeof(struct sockaddr_un));
     server_address.sun_family = AF_UNIX;
@@ -73,14 +83,19 @@ int msgsnd_nmb(int clientsockfd, char *ip, short port, void *msg, size_t msgsz)
 int msgrcv_nmb(int clientsockfd, void *msg, size_t msgsz)
 {
     long msgtype = __port;
-    // Try reading from message queue
     struct ip_msg ipmsg;
-    int n = msgrcv(__msqid, &ipmsg, sizeof(ipmsg), msgtype, IPC_NOWAIT);
-    if (n != -1)
+    int n;
+
+    if (__port != 0)
     {
-        *(long *)msg = ((long)ipmsg.ip << 16) | ipmsg.mtype;
-        memcpy((char *)msg + sizeof(long), &ipmsg.mtext, msgsz);
-        return n;
+        // Try reading from message queue
+        n = msgrcv(__msqid, &ipmsg, sizeof(ipmsg), msgtype, IPC_NOWAIT);
+        if (n != -1)
+        {
+            *(long *)msg = ((long)ipmsg.ip << 16) | ipmsg.mtype;
+            memcpy((char *)msg + sizeof(long), &ipmsg.mtext, msgsz);
+            return n;
+        }
     }
 
     // Read from socket if msg queue is empty

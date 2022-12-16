@@ -13,7 +13,6 @@ struct msg
 
 int main(int argc, char *argv[])
 {
-    // TODO: Remove port part
     if (argc != 2)
     {
         printf("Usage: ./driver <your-port>\n");
