@@ -36,6 +36,7 @@ int main(int argc, char **argv)
     FD_SET(rawfd, &allset);
     FD_SET(udsfd, &allset);
 
+    printf("Listening to ICMP Messages\n");
     // Receive a packet
     char buf[MAX_BUFFER_LENGTH];
     while (1)
@@ -44,6 +45,7 @@ int main(int argc, char **argv)
         if (select(maxfd + 1, &rset, NULL, NULL, NULL) == -1)
             continue;
         struct error_msg err;
+        printf("ICMP Received\n");
         if (FD_ISSET(udsfd, &rset))
         {
             msgrcv_nmb(udsfd, &err, sizeof(err));
