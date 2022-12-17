@@ -49,3 +49,8 @@ The Network Message Bus (NMB) has following characteristics (in brief)
 
 ![Process 1](./screenshots/process1.png?raw=true)
 ![Process 2](./screenshots/process2.png?raw=true)
+
+### Example of communication between two processes on same system
+
+![Process 1](./screenshots/local_process1.png?raw=true)
+![Process 2](./screenshots/local_process2.png?raw=true)
