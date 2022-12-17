@@ -16,6 +16,13 @@ A network message bus implemented for the course IS F462 Network Programming at 
     ./error
 ```
 
+## To generate ICMP traffic
+```
+    nping --icmp --icmp-type 3 --icmp-code 0 --data "450000292c21400080065a10ac112b8dd83ac4c4"  <ip address>
+    nping --icmp --icmp-type 3 --icmp-code 1 --data "450000292c21400080065a10ac112b8dd83ac4c4"  <ip address>
+    host unreachable
+```
+
 ## Design Features
 
 The Network Message Bus (NMB) has following characteristics (in brief)
@@ -33,8 +40,8 @@ The Network Message Bus (NMB) has following characteristics (in brief)
 
 ### Local server
 
-- Each local server has a UDP socket and a Unix Domain Datagram Socket. UDP Socket is used for receiving multicasted messages and Unix Domain Datagram Socket is used for relaying messages to its processes
-- The local server multicasts the messages which are sent by its processes and thse messages are received by other servers through UDP socket
+- Each local server has a UDP socket, a Unix Domain Datagram Socket and a message queue. UDP Socket is used for receiving multicasted messages and Unix Domain Datagram Socket is used for relaying messages to its processes
+- The local server multicasts the messages which are sent by its processes and these messages are received by other servers through UDP socket
 - When a local server receives a multicasted message at its UDP socket, it calculates the port of the destination client by calculating its port number from the mtype of the message. If that client process is running, this message is directly sent to its UDS. Else the message is buffered in the message queue
 
 ### Error Process
