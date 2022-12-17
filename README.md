@@ -35,7 +35,7 @@ The Network Message Bus (NMB) has following characteristics (in brief)
 ### NMB API
 
 - msget_nmb(): It takes port number as a parameter and returns a Unix Domain Datagram socket for the client process
-- msgsnd_nmb(): It is used by both client and error process to send a message to its local server (on Unix Domain Socket). It accepts the client socket fd, destination ip and port and message to be sent and its size as parameters and sends the message to the corresponding local server (on Unix Domain Socket). If error process uses this API, it passes NULL and 0 as destination ip and port respectively. It also sets the mtype of the message using destination ip and port number
+- msgsnd_nmb(): It is used by both client and error process to send a message to its local server (on Unix Domain Socket). It accepts the client socket fd, destination ip and port and message to be sent and its size as parameters and sends the message to the corresponding local server (on Unix Domain Socket). If error process uses this API, it passes NULL and 0 as destination ip and port respectively. It also sets the mtype of the message using destination ip and port number (mtype = 0 for error processes)
 - msgrcv_nmb(): It tries to fetch messages from message queue (if message queue is non empty). If the message queue is empty, it fetches the message from its socket (which is passed as a parameter)
 
 ### Local server
@@ -46,7 +46,8 @@ The Network Message Bus (NMB) has following characteristics (in brief)
 
 ### Error Process
 
-- 
+- Each error process has a raw socket (for reading ICMP messages) and a Unix Domain Datagram socket (for sending the received ICMP error to its local server)
+- When raw socket receives a ICMP message, it extracts the type of ICMP message from its header and sends the error message to local server only if the type of the message is "ICMP Network Unreachable" or "ICMP Port Unreachable"
 
 ## Assumptions
 
