@@ -13,7 +13,7 @@ A network message bus implemented for the course IS F462 Network Programming at 
     
     gcc -o error error.c nmb.c
     
-    ./error
+    sudo ./error (Error process creates raw socket and hence root privileges are required)
 ```
 
 ## To generate ICMP traffic
@@ -53,7 +53,7 @@ The Network Message Bus (NMB) has following characteristics (in brief)
 ## Assumptions
 
 - The local Unix Domain Server runs at /tmp/1111
-- Unix Domain Sockets for clients run at /tmp/nmb.<port number>
+- Unix Domain Sockets for clients run at /tmp/nmb.port_number
 
 ## Screenshots
 
