@@ -19,6 +19,7 @@ A network message bus implemented for the course IS F462 Network Programming at 
 ## To generate ICMP traffic
 ```
     nping --icmp --icmp-type 3 --icmp-code 0 --data "450000292c21400080065a10ac112b8dd83ac4c4"  <ip address>
+    
     nping --icmp --icmp-type 3 --icmp-code 1 --data "450000292c21400080065a10ac112b8dd83ac4c4"  <ip address>
     host unreachable
 ```
@@ -50,6 +51,9 @@ The Network Message Bus (NMB) has following characteristics (in brief)
 - When raw socket receives a ICMP message, it extracts the type of ICMP message from its header and sends the error message to local server only if the type of the message is "ICMP Network Unreachable" or "ICMP Port Unreachable"
 
 ## Assumptions
+
+- The local Unix Domain Server runs at /tmp/1111
+- Unix Domain Sockets for clients run at /tmp/nmb.<port number>
 
 ## Screenshots
 
