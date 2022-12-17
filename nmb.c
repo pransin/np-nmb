@@ -6,6 +6,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include "errno.h"
 #include "nmb.h"
@@ -50,6 +51,8 @@ int msgget_nmb(short port)
     if (bind(sockfd, (struct sockaddr *)&client_address, sizeof(struct sockaddr_un)) == -1)
         error_exit("bind");
 
+    if (__port == 0 && chmod(client_address.sun_path, 0777) == -1)
+        error_exit("chmod");
     __msqid = get_mq();
     return sockfd;
 }
