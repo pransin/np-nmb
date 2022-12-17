@@ -144,7 +144,8 @@ void process_message(struct msg *msg, int msg_len, int udsfd, int msqid)
     unsigned int port = msg->mtype & 0xffff;
     snprintf(cliaddr.sun_path, sizeof(cliaddr.sun_path), "/tmp/nmb.%u", port);
     printf("Trying to send on unix socket\n");
-    if ((sendto(udsfd, msg, msg_len, 0, (struct sockaddr *)&cliaddr, sizeof(struct sockaddr_un)) == -1) && (port != 0))
+    int nb;
+    if (((nb = sendto(udsfd, msg, msg_len, 0, (struct sockaddr *)&cliaddr, sizeof(struct sockaddr_un))) == -1) && (port != 0))
     {
         // Separate IP from port so that it is easy for nmb process to retrieve message from msg queue.
         // Option 2 was that nmb process IP address on its own and compute the mtype but that would not work in case of multihomed systems
@@ -155,6 +156,9 @@ void process_message(struct msg *msg, int msg_len, int udsfd, int msqid)
         printf("Sending on message queue\n");
         msgsnd(msqid, &ipmsg, msg_len + sizeof(ipmsg.ip), 0);
     }
+
+    if (nb == -1)
+        perror("sendto");
 }
 
 void send_multi_msg(int udpfd, int udsfd, int msqid)
